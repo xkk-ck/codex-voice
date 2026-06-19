@@ -30,6 +30,8 @@ struct Copy {
     var autoSendTitle: String { language == .chinese ? "自动发送" : "Auto-send" }
     var placeholder: String { language == .chinese ? "说点什么，或直接在这里编辑..." : "Speak, or edit the transcript here..." }
     var permissionTitle: String { language == .chinese ? "开启权限" : "Enable permissions" }
+    var speechPermissionTitle: String { language == .chinese ? "语音识别权限" : "Speech permission" }
+    var accessibilityPermissionTitle: String { language == .chinese ? "辅助功能权限" : "Accessibility" }
     var readyStatus: String { language == .chinese ? "就绪" : "Ready" }
     var requestingPermissionStatus: String { language == .chinese ? "正在请求语音权限..." : "Requesting speech permissions..." }
     var startingStatus: String { language == .chinese ? "正在启动麦克风..." : "Starting microphone..." }
@@ -57,10 +59,25 @@ struct Copy {
             ? "需要开启语音识别权限"
             : "Speech Recognition permission is needed"
     }
+    var speechNotDeterminedStatus: String {
+        language == .chinese
+            ? "请先在系统设置里开启 Codex Voice 的语音识别权限"
+            : "Enable Speech Recognition for Codex Voice in System Settings first."
+    }
+    var speechTimeoutStatus: String {
+        language == .chinese
+            ? "语音识别授权还没有完成，请点“语音识别权限”开启"
+            : "Speech Recognition is not enabled yet. Click Speech permission."
+    }
     var microphoneDeniedStatus: String {
         language == .chinese
             ? "需要开启麦克风权限"
             : "Microphone permission is needed"
+    }
+    var microphoneUnavailableStatus: String {
+        language == .chinese
+            ? "没有检测到可用麦克风输入，请检查系统声音输入"
+            : "No usable microphone input was detected. Check System Sound Input."
     }
     var permissionTimeoutStatus: String {
         language == .chinese

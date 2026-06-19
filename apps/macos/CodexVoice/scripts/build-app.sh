@@ -19,7 +19,7 @@ cp "Resources/Info.plist" "$CONTENTS/Info.plist"
 chmod +x "$MACOS/CodexVoice"
 
 if command -v codesign >/dev/null 2>&1; then
-  codesign --force --deep --sign - "$APP_BUNDLE" >/dev/null
+  codesign --force --deep --sign - --entitlements "Resources/CodexVoice.entitlements" "$APP_BUNDLE" >/dev/null
 fi
 
 echo "$APP_BUNDLE"

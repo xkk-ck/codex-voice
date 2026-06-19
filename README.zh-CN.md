@@ -38,6 +38,8 @@ Codex Voice 是一个面向 Codex Desktop 的轻量语音输入伴随插件。
 open "apps/macos/CodexVoice/dist/Codex Voice.app"
 ```
 
+首次使用原生 App 需要给 `Codex Voice.app` 开启 **麦克风** 和 **语音识别** 权限；自动填入 Codex 才需要额外开启 **辅助功能** 权限。
+
 说明见：[原生 macOS App](./docs/native-macos-app.zh-CN.md)。
 
 ## 使用方式

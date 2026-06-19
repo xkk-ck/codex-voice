@@ -71,9 +71,16 @@ struct VoiceBarView: View {
                 }
 
             HStack(spacing: 8) {
-                Button(copy.permissionTitle) {
+                Button(copy.speechPermissionTitle) {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_SpeechRecognition") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+                .controlSize(.small)
+
+                Button(copy.accessibilityPermissionTitle) {
                     _ = CodexInserter.requestAccessibilityPermission()
-                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy") {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
                         NSWorkspace.shared.open(url)
                     }
                 }
@@ -108,7 +115,7 @@ struct VoiceBarView: View {
         }
         .padding(14)
         .frame(width: 420)
-        .background(.regularMaterial)
+        .background(Color(nsColor: .windowBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 14, style: .continuous)

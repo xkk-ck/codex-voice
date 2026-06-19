@@ -38,6 +38,8 @@ Route A adds a lightweight SwiftUI app that uses Apple Speech Recognition instea
 open "apps/macos/CodexVoice/dist/Codex Voice.app"
 ```
 
+On first use, the native app needs **Microphone** and **Speech Recognition** permissions for `Codex Voice.app`; **Accessibility** is only needed for direct insertion into Codex.
+
 See [Native macOS App](./docs/native-macos-app.md).
 
 ## Usage

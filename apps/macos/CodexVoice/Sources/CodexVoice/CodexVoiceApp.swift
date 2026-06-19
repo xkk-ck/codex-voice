@@ -11,40 +11,37 @@ struct CodexVoiceApp: App {
     }
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private var panel: NSPanel?
+    private var window: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.accessory)
-
-        let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 156),
-            styleMask: [.titled, .fullSizeContentView],
-            backing: .buffered,
-            defer: false
-        )
-        panel.title = "Codex Voice"
-        panel.titleVisibility = .hidden
-        panel.titlebarAppearsTransparent = true
-        panel.standardWindowButton(.closeButton)?.isHidden = true
-        panel.standardWindowButton(.zoomButton)?.isHidden = true
-        panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        panel.level = .statusBar
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
-        panel.isMovableByWindowBackground = true
-        panel.backgroundColor = .clear
-        panel.isOpaque = false
-        panel.hidesOnDeactivate = false
-        panel.contentView = NSHostingView(rootView: VoiceBarView())
-        panel.center()
-        panel.orderFrontRegardless()
-        panel.makeKeyAndOrderFront(nil)
-
-        self.panel = panel
-        NSApp.activate(ignoringOtherApps: true)
+        NSApp.setActivationPolicy(.regular)
+        showWindow()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        false
+        true
+    }
+
+    private func showWindow() {
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 220),
+            styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        window.title = "Codex Voice"
+        window.level = .floating
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.isMovableByWindowBackground = true
+        window.backgroundColor = .windowBackgroundColor
+        window.isOpaque = true
+        window.isReleasedWhenClosed = false
+        window.contentView = NSHostingView(rootView: VoiceBarView())
+        window.center()
+        window.makeKeyAndOrderFront(nil)
+        self.window = window
+        NSApp.activate(ignoringOtherApps: true)
     }
 }

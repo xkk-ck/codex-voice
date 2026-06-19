@@ -4,5 +4,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 SECONDS_TO_RECORD="${1:-45}"
+ALLOW_PERMISSION_NEEDED="${2:-}"
 
-exec "$REPO_DIR/apps/macos/CodexVoice/scripts/self-test-recording.sh" "$SECONDS_TO_RECORD"
+exec "$REPO_DIR/apps/macos/CodexVoice/scripts/self-test-recording.sh" "$SECONDS_TO_RECORD" "$ALLOW_PERMISSION_NEEDED"

@@ -65,6 +65,14 @@ Microphone and Speech Recognition are needed for transcription.
 
 Accessibility is needed only for direct insertion into Codex. If Accessibility is denied, Codex Voice still copies the transcript to the clipboard.
 
+On first use, if clicking the microphone says Speech Recognition permission is needed, click the **Speech permission** button in the app, or open:
+
+```text
+System Settings -> Privacy & Security -> Speech Recognition -> Codex Voice
+```
+
+After enabling it, click the microphone again to start recording. **Accessibility permission does not affect recording; it only affects direct insertion into Codex.**
+
 To enable direct insertion:
 
 1. Open System Settings.
@@ -91,8 +99,9 @@ Completed locally:
 - `.app` bundle is generated.
 - `Info.plist` validates with `plutil`.
 - Ad-hoc code signature verifies with `codesign`.
-- App launches as a floating accessory window.
-- Native recording self-test passes for 45 seconds without a new crash report.
+- App launches as a regular macOS window that stays in front.
+- Without Speech Recognition permission, the app now shows a clear action and opens System Settings instead of hanging on "Requesting speech permissions".
+- Permission-needed self-test passes without a new crash report.
 
 Run the self-test:
 
@@ -100,10 +109,17 @@ Run the self-test:
 ./scripts/test-macos-app 45
 ```
 
+If the current machine has not granted Speech Recognition to `Codex Voice.app` yet, run:
+
+```bash
+./scripts/test-macos-app 10 --allow-permission-needed
+```
+
 Pending user acceptance:
 
 - Microphone permission flow.
 - Speech Recognition permission flow.
+- 45-second recording self-test after Speech Recognition is enabled.
 - Accessibility insertion into the user's Codex Desktop session.
 - Auto-send behavior in a real Codex conversation.
 

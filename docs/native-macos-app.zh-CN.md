@@ -65,6 +65,14 @@ open "apps/macos/CodexVoice/dist/Codex Voice.app"
 
 辅助功能权限只用于自动填入 Codex。如果用户拒绝辅助功能权限，Codex Voice 仍然会把转写内容复制到剪贴板。
 
+首次使用时，如果点击话筒后提示需要语音识别权限，请点击 App 内的 **语音识别权限** 按钮，或进入：
+
+```text
+系统设置 -> 隐私与安全性 -> 语音识别 -> Codex Voice
+```
+
+开启后重新点击话筒即可开始录音。**辅助功能权限不影响录音，只影响自动填入 Codex。**
+
 开启自动填入：
 
 1. 打开系统设置。
@@ -91,8 +99,9 @@ Auto-send 默认关闭。
 - `.app` bundle 成功生成。
 - `Info.plist` 通过 `plutil` 校验。
 - ad-hoc 签名通过 `codesign` 校验。
-- App 可以作为悬浮 accessory window 启动。
-- 原生录音自测 45 秒通过，未产生新的 crash report。
+- App 可以作为普通 macOS 窗口启动并保持浮在前面。
+- 未开启语音识别权限时，App 会给出明确提示并打开系统设置，不再卡在“正在请求语音权限”。
+- 未授权路径自测通过，且未产生新的 crash report。
 
 运行自测：
 
@@ -100,10 +109,17 @@ Auto-send 默认关闭。
 ./scripts/test-macos-app 45
 ```
 
+如果当前机器还没有给 `Codex Voice.app` 开启语音识别权限，可以先运行：
+
+```bash
+./scripts/test-macos-app 10 --allow-permission-needed
+```
+
 待用户验收：
 
 - 麦克风权限流程。
 - 语音识别权限流程。
+- 开启语音识别权限后的 45 秒录音自测。
 - 在用户 Codex Desktop 会话中的辅助功能自动填入。
 - 真实 Codex 对话中的 Auto-send 行为。
 
