@@ -92,6 +92,13 @@ Auto-send 默认关闭。
 - `Info.plist` 通过 `plutil` 校验。
 - ad-hoc 签名通过 `codesign` 校验。
 - App 可以作为悬浮 accessory window 启动。
+- 原生录音自测 45 秒通过，未产生新的 crash report。
+
+运行自测：
+
+```bash
+./scripts/test-macos-app 45
+```
 
 待用户验收：
 

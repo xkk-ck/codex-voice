@@ -4,6 +4,7 @@ struct VoiceBarView: View {
     @StateObject private var recognizer = VoiceRecognizer()
     @State private var autoSend = false
     @State private var status = Copy().readyStatus
+    @State private var didRunSelfTest = false
 
     private let copy = Copy()
 
@@ -113,12 +114,36 @@ struct VoiceBarView: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .stroke(Color.primary.opacity(0.08))
         }
+        .onAppear(perform: runSelfTestIfRequested)
     }
 
     private var currentStatus: String {
-        if recognizer.isListening {
+        if recognizer.status != copy.readyStatus {
             return recognizer.status
         }
         return status
+    }
+
+    private func runSelfTestIfRequested() {
+        guard !didRunSelfTest else { return }
+        guard let index = CommandLine.arguments.firstIndex(of: "--self-test-record") else { return }
+        didRunSelfTest = true
+
+        let seconds: UInt64
+        if CommandLine.arguments.indices.contains(index + 1),
+           let parsed = UInt64(CommandLine.arguments[index + 1]) {
+            seconds = parsed
+        } else {
+            seconds = 15
+        }
+
+        recognizer.start()
+        Task {
+            try? await Task.sleep(nanoseconds: seconds * 1_000_000_000)
+            await MainActor.run {
+                recognizer.stop()
+                NSApp.terminate(nil)
+            }
+        }
     }
 }

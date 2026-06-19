@@ -92,6 +92,13 @@ Completed locally:
 - `Info.plist` validates with `plutil`.
 - Ad-hoc code signature verifies with `codesign`.
 - App launches as a floating accessory window.
+- Native recording self-test passes for 45 seconds without a new crash report.
+
+Run the self-test:
+
+```bash
+./scripts/test-macos-app 45
+```
 
 Pending user acceptance:
 

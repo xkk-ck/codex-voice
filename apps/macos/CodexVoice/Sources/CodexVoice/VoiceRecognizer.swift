@@ -53,6 +53,40 @@ enum VoicePermissionFlow {
     }
 }
 
+struct SpeechUpdate: Sendable {
+    let transcript: String?
+    let isFinal: Bool
+    let errorDescription: String?
+}
+
+enum SpeechRuntime {
+    static func installTap(
+        on inputNode: AVAudioInputNode,
+        format: AVAudioFormat,
+        request: SFSpeechAudioBufferRecognitionRequest
+    ) {
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
+            request.append(buffer)
+        }
+    }
+
+    static func startRecognition(
+        recognizer: SFSpeechRecognizer,
+        request: SFSpeechAudioBufferRecognitionRequest,
+        onUpdate: @escaping @Sendable (SpeechUpdate) -> Void
+    ) -> SFSpeechRecognitionTask {
+        recognizer.recognitionTask(with: request) { result, error in
+            onUpdate(
+                SpeechUpdate(
+                    transcript: result?.bestTranscription.formattedString,
+                    isFinal: result?.isFinal ?? false,
+                    errorDescription: error?.localizedDescription
+                )
+            )
+        }
+    }
+}
+
 @MainActor
 final class VoiceRecognizer: ObservableObject {
     @Published var isListening = false
@@ -143,9 +177,7 @@ final class VoiceRecognizer: ObservableObject {
 
         let inputNode = audioEngine.inputNode
         let recordingFormat = inputNode.outputFormat(forBus: 0)
-        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
-            self?.request?.append(buffer)
-        }
+        SpeechRuntime.installTap(on: inputNode, format: recordingFormat, request: request)
 
         audioEngine.prepare()
         try audioEngine.start()
@@ -153,17 +185,17 @@ final class VoiceRecognizer: ObservableObject {
         isListening = true
         status = copy.listeningStatus
 
-        task = recognizer.recognitionTask(with: request) { [weak self] result, error in
+        task = SpeechRuntime.startRecognition(recognizer: recognizer, request: request) { [weak self] update in
             Task { @MainActor in
                 guard let self else { return }
-                if let result {
-                    self.transcript = result.bestTranscription.formattedString
-                    if result.isFinal {
+                if let transcript = update.transcript {
+                    self.transcript = transcript
+                    if update.isFinal {
                         self.stop()
                     }
                 }
-                if let error {
-                    self.status = error.localizedDescription
+                if let errorDescription = update.errorDescription {
+                    self.status = errorDescription
                     self.stop()
                 }
             }
