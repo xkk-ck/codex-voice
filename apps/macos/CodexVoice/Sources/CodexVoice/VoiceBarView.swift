@@ -38,6 +38,17 @@ struct VoiceBarView: View {
                     .toggleStyle(.switch)
                     .controlSize(.small)
                     .font(.system(size: 12))
+
+                Button {
+                    recognizer.stop()
+                    NSApp.terminate(nil)
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Quit Codex Voice")
             }
 
             TextEditor(text: $recognizer.transcript)
