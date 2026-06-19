@@ -72,6 +72,9 @@ struct VoiceBarView: View {
             HStack(spacing: 8) {
                 Button(copy.permissionTitle) {
                     _ = CodexInserter.requestAccessibilityPermission()
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy") {
+                        NSWorkspace.shared.open(url)
+                    }
                 }
                 .controlSize(.small)
 

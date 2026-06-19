@@ -2,6 +2,57 @@ import AVFoundation
 import Foundation
 import Speech
 
+enum VoicePermissionResult {
+    case allowed
+    case speechDenied
+    case microphoneDenied
+}
+
+enum VoicePermissionFlow {
+    static func request(_ completion: @escaping @Sendable (VoicePermissionResult) -> Void) {
+        requestSpeech { speechAllowed in
+            guard speechAllowed else {
+                completion(.speechDenied)
+                return
+            }
+
+            requestMicrophone { micAllowed in
+                completion(micAllowed ? .allowed : .microphoneDenied)
+            }
+        }
+    }
+
+    private static func requestSpeech(_ completion: @escaping @Sendable (Bool) -> Void) {
+        switch SFSpeechRecognizer.authorizationStatus() {
+        case .authorized:
+            completion(true)
+        case .denied, .restricted:
+            completion(false)
+        case .notDetermined:
+            SFSpeechRecognizer.requestAuthorization { status in
+                completion(status == .authorized)
+            }
+        @unknown default:
+            completion(false)
+        }
+    }
+
+    private static func requestMicrophone(_ completion: @escaping @Sendable (Bool) -> Void) {
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized:
+            completion(true)
+        case .denied, .restricted:
+            completion(false)
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .audio) { allowed in
+                completion(allowed)
+            }
+        @unknown default:
+            completion(false)
+        }
+    }
+}
+
 @MainActor
 final class VoiceRecognizer: ObservableObject {
     @Published var isListening = false
@@ -23,37 +74,30 @@ final class VoiceRecognizer: ObservableObject {
     }
 
     func start() {
-        requestPermissions { [weak self] allowed in
+        status = copy.requestingPermissionStatus
+
+        let timeout = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 12_000_000_000)
+            await MainActor.run {
+                guard let self, !self.isListening, self.status == self.copy.requestingPermissionStatus else { return }
+                self.status = self.copy.permissionTimeoutStatus
+            }
+        }
+
+        VoicePermissionFlow.request { [weak self] result in
             Task { @MainActor in
+                timeout.cancel()
                 guard let self else { return }
-                guard allowed else {
-                    self.status = self.copy.micDeniedStatus
-                    return
+
+                switch result {
+                case .allowed:
+                    self.status = self.copy.startingStatus
+                    self.startAfterPermissions()
+                case .speechDenied:
+                    self.status = self.copy.speechDeniedStatus
+                case .microphoneDenied:
+                    self.status = self.copy.microphoneDeniedStatus
                 }
-                self.startAfterPermissions()
-            }
-        }
-    }
-
-    private func startAfterPermissions() {
-        do {
-            try beginRecognition()
-        } catch {
-            status = error.localizedDescription
-            stop()
-        }
-    }
-
-    nonisolated private func requestPermissions(_ completion: @escaping @Sendable (Bool) -> Void) {
-        SFSpeechRecognizer.requestAuthorization { speechStatus in
-            guard speechStatus == .authorized else {
-                completion(false)
-                return
-            }
-
-            Task {
-                let micAllowed = await AVAudioApplication.requestRecordPermission()
-                completion(micAllowed)
             }
         }
     }
@@ -68,8 +112,17 @@ final class VoiceRecognizer: ObservableObject {
         task = nil
         request = nil
         isListening = false
-        if status == copy.listeningStatus {
+        if status == copy.listeningStatus || status == copy.startingStatus {
             status = copy.readyStatus
+        }
+    }
+
+    private func startAfterPermissions() {
+        do {
+            try beginRecognition()
+        } catch {
+            status = error.localizedDescription
+            stop()
         }
     }
 
