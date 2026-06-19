@@ -23,17 +23,37 @@ final class VoiceRecognizer: ObservableObject {
     }
 
     func start() {
-        Task {
-            let allowed = await requestPermissions()
-            guard allowed else {
-                status = copy.micDeniedStatus
+        requestPermissions { [weak self] allowed in
+            Task { @MainActor in
+                guard let self else { return }
+                guard allowed else {
+                    self.status = self.copy.micDeniedStatus
+                    return
+                }
+                self.startAfterPermissions()
+            }
+        }
+    }
+
+    private func startAfterPermissions() {
+        do {
+            try beginRecognition()
+        } catch {
+            status = error.localizedDescription
+            stop()
+        }
+    }
+
+    nonisolated private func requestPermissions(_ completion: @escaping @Sendable (Bool) -> Void) {
+        SFSpeechRecognizer.requestAuthorization { speechStatus in
+            guard speechStatus == .authorized else {
+                completion(false)
                 return
             }
-            do {
-                try beginRecognition()
-            } catch {
-                status = error.localizedDescription
-                stop()
+
+            Task {
+                let micAllowed = await AVAudioApplication.requestRecordPermission()
+                completion(micAllowed)
             }
         }
     }
@@ -51,17 +71,6 @@ final class VoiceRecognizer: ObservableObject {
         if status == copy.listeningStatus {
             status = copy.readyStatus
         }
-    }
-
-    private func requestPermissions() async -> Bool {
-        let speechAllowed = await withCheckedContinuation { continuation in
-            SFSpeechRecognizer.requestAuthorization { status in
-                continuation.resume(returning: status == .authorized)
-            }
-        }
-
-        let micAllowed = await AVAudioApplication.requestRecordPermission()
-        return speechAllowed && micAllowed
     }
 
     private func beginRecognition() throws {
