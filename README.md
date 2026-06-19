@@ -25,6 +25,8 @@ This starts Codex Voice Helper and opens the mic window.
 
 For a clearer macOS permission target, run `install-macos-helper-app` once and launch `Codex Voice Helper.app` from `~/Applications`.
 
+For the full MVP guide, see [MVP Usage Guide](./docs/mvp-usage.md).
+
 ## Usage
 
 1. Put focus on the Codex conversation you want to use.
@@ -123,6 +125,7 @@ Speak -> transcribe -> review -> insert into composer -> user sends
 
 ## Roadmap
 
+- Route A: native lightweight SwiftUI macOS app with Apple Speech Recognition.
 - Improve Codex composer detection.
 - Add press-and-hold recording.
 - Add a true floating overlay once the MVP is validated.
