@@ -8,3 +8,8 @@ DerivedData/
 *.xcuserstate
 apps/macos/CodexVoice/dist/
 apps/macos/CodexVoice/.build/
+.build/
+DerivedData/
+*.xcuserstate
+apps/macos/CodexVoice/dist/
+apps/macos/CodexVoice/.build/

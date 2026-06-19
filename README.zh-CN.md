@@ -16,6 +16,8 @@ Codex Voice 是一个面向 Codex Desktop 的轻量语音输入伴随插件。
 
 ## 快速开始
 
+### 浏览器 MVP
+
 ```bash
 ./scripts/install-macos-helper-app
 ./scripts/open-codex-voice
@@ -26,6 +28,17 @@ Codex Voice 是一个面向 Codex Desktop 的轻量语音输入伴随插件。
 为了让 macOS 权限目标更清楚，建议先运行一次 `install-macos-helper-app`，之后从 `~/Applications` 启动 `Codex Voice Helper.app`。
 
 完整 MVP 使用说明见：[MVP 使用说明](./docs/mvp-usage.zh-CN.md)。
+
+### 原生 macOS App 预览
+
+路线 A 增加了一个 SwiftUI 原生轻量 App，使用 Apple Speech Recognition，不再依赖浏览器 Web Speech API：
+
+```bash
+./scripts/build-macos-app
+open "apps/macos/CodexVoice/dist/Codex Voice.app"
+```
+
+说明见：[原生 macOS App](./docs/native-macos-app.zh-CN.md)。
 
 ## 使用方式
 

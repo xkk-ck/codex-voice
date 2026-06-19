@@ -16,6 +16,8 @@ It adds a small microphone window that lets you speak naturally, review the tran
 
 ## Quick Start
 
+### Browser MVP
+
 ```bash
 ./scripts/install-macos-helper-app
 ./scripts/open-codex-voice
@@ -26,6 +28,17 @@ This starts Codex Voice Helper and opens the mic window.
 For a clearer macOS permission target, run `install-macos-helper-app` once and launch `Codex Voice Helper.app` from `~/Applications`.
 
 For the full MVP guide, see [MVP Usage Guide](./docs/mvp-usage.md).
+
+### Native macOS App Preview
+
+Route A adds a lightweight SwiftUI app that uses Apple Speech Recognition instead of the browser Web Speech API:
+
+```bash
+./scripts/build-macos-app
+open "apps/macos/CodexVoice/dist/Codex Voice.app"
+```
+
+See [Native macOS App](./docs/native-macos-app.md).
 
 ## Usage
 
