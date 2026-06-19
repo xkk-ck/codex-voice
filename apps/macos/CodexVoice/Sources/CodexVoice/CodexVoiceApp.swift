@@ -5,35 +5,46 @@ struct CodexVoiceApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        WindowGroup {
-            VoiceBarView()
+        Settings {
+            EmptyView()
         }
-        .windowStyle(.hiddenTitleBar)
-        .windowResizability(.contentSize)
     }
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var panel: NSPanel?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
 
-        DispatchQueue.main.async {
-            guard let window = NSApp.windows.first else { return }
-            window.title = "Codex Voice"
-            window.level = .floating
-            window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            window.isMovableByWindowBackground = true
-            window.backgroundColor = .clear
-            window.isOpaque = false
-            window.standardWindowButton(.zoomButton)?.isHidden = true
-            window.standardWindowButton(.miniaturizeButton)?.isHidden = true
-            window.setContentSize(NSSize(width: 420, height: 156))
-            window.center()
-            NSApp.activate(ignoringOtherApps: true)
-        }
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 156),
+            styleMask: [.titled, .fullSizeContentView],
+            backing: .buffered,
+            defer: false
+        )
+        panel.title = "Codex Voice"
+        panel.titleVisibility = .hidden
+        panel.titlebarAppearsTransparent = true
+        panel.standardWindowButton(.closeButton)?.isHidden = true
+        panel.standardWindowButton(.zoomButton)?.isHidden = true
+        panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        panel.level = .statusBar
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        panel.isMovableByWindowBackground = true
+        panel.backgroundColor = .clear
+        panel.isOpaque = false
+        panel.hidesOnDeactivate = false
+        panel.contentView = NSHostingView(rootView: VoiceBarView())
+        panel.center()
+        panel.orderFrontRegardless()
+        panel.makeKeyAndOrderFront(nil)
+
+        self.panel = panel
+        NSApp.activate(ignoringOtherApps: true)
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+        false
     }
 }
