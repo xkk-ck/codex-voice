@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+APP_DIR="${CODEX_VOICE_APP_DIR:-$HOME/Applications/Codex Voice Helper.app}"
+RESOURCES_DIR="$APP_DIR/Contents/Resources"
+MACOS_DIR="$APP_DIR/Contents/MacOS"
+RUNTIME_NAME="Codex Voice Helper Runtime"
+
+HELPER_SOURCE="${TMPDIR:-/tmp}/CodexVoiceHelper.applescript"
+cat > "$HELPER_SOURCE" <<APPLESCRIPT
+on run argv
+  if (count of argv) is 0 then
+    do shell script "nohup " & quoted form of "$RESOURCES_DIR/launch.sh" & " >/tmp/codex-voice-helper-app.log 2>&1 &"
+    return
+  end if
+
+  set textPath to item 1 of argv
+  set shouldSend to false
+  if (count of argv) > 1 then
+    set shouldSend to ((item 2 of argv) is "true")
+  end if
+
+  set inputText to read POSIX file textPath as «class utf8»
+  set the clipboard to inputText
+
+  tell application "Codex" to activate
+  delay 0.25
+
+  tell application "System Events"
+    keystroke "v" using command down
+    delay 0.1
+    if shouldSend then
+      key code 36
+    end if
+  end tell
+end run
+APPLESCRIPT
+
+rm -rf "$APP_DIR"
+osacompile -o "$APP_DIR" "$HELPER_SOURCE"
+mkdir -p "$RESOURCES_DIR"
+cp "$HELPER_SOURCE" "$RESOURCES_DIR/CodexVoiceHelper.applescript"
+cat > "$RESOURCES_DIR/launch.sh" <<SH
+#!/usr/bin/env bash
+set -euo pipefail
+export CODEX_VOICE_PERMISSION_APP="Codex Voice Helper"
+export CODEX_VOICE_PASTE_HELPER_APP="$APP_DIR"
+export CODEX_VOICE_ROOT="$PLUGIN_DIR"
+export CODEX_VOICE_PORT="\${CODEX_VOICE_PORT:-47732}"
+export NODE_BIN="$RESOURCES_DIR/$RUNTIME_NAME"
+exec "$PLUGIN_DIR/scripts/open-codex-voice"
+SH
+cat > "$APP_DIR/Contents/Info.plist.tmp" <<'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>applet</string>
+  <key>CFBundleIdentifier</key>
+  <string>local.codex.voice.helper</string>
+  <key>CFBundleName</key>
+  <string>Codex Voice Helper</string>
+  <key>CFBundleDisplayName</key>
+  <string>Codex Voice Helper</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleVersion</key>
+  <string>1</string>
+  <key>CFBundleShortVersionString</key>
+  <string>0.2.0</string>
+  <key>LSUIElement</key>
+  <true/>
+</dict>
+</plist>
+PLIST
+mv "$APP_DIR/Contents/Info.plist.tmp" "$APP_DIR/Contents/Info.plist"
+chmod +x "$RESOURCES_DIR/launch.sh"
+
+NODE_SOURCE="${NODE_BIN_SOURCE:-}"
+if [[ -z "$NODE_SOURCE" ]]; then
+  if command -v node >/dev/null 2>&1; then
+    NODE_SOURCE="$(command -v node)"
+  fi
+fi
+
+if [[ -n "$NODE_SOURCE" && -x "$NODE_SOURCE" ]]; then
+  cp "$NODE_SOURCE" "$RESOURCES_DIR/$RUNTIME_NAME"
+  chmod +x "$RESOURCES_DIR/$RUNTIME_NAME"
+else
+  echo "Warning: Node.js runtime was not bundled. Codex Voice will use system node if available." >&2
+fi
+
+echo "$APP_DIR"

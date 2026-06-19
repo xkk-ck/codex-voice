@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+NODE_BIN="${NODE_BIN:-node}"
+BRIDGE="$PLUGIN_DIR/scripts/bridge.js"
+MIC_BAR="$PLUGIN_DIR/assets/mic-bar.html"
+PORT="${CODEX_VOICE_PORT:-47732}"
+LOG_FILE="${TMPDIR:-/tmp}/codex-voice-bridge.log"
+PERMISSION_APP="${CODEX_VOICE_PERMISSION_APP:-${TERM_PROGRAM:-Codex Voice Helper}}"
+PASTE_HELPER_APP="${CODEX_VOICE_PASTE_HELPER_APP:-$HOME/Applications/Codex Voice Helper.app}"
+
+if [[ ! -f "$BRIDGE" ]]; then
+  echo "Missing bridge: $BRIDGE" >&2
+  exit 1
+fi
+
+if [[ ! -f "$MIC_BAR" ]]; then
+  echo "Missing mic window: $MIC_BAR" >&2
+  exit 1
+fi
+
+if ! command -v "$NODE_BIN" >/dev/null 2>&1; then
+  echo "Node.js is required. Set NODE_BIN or install node." >&2
+  exit 1
+fi
+
+if ! curl --silent --max-time 1 "http://127.0.0.1:$PORT/health" >/dev/null 2>&1; then
+  CODEX_VOICE_PASTE_HELPER_APP="$PASTE_HELPER_APP" CODEX_VOICE_PERMISSION_APP="$PERMISSION_APP" CODEX_VOICE_ROOT="$PLUGIN_DIR" CODEX_VOICE_PORT="$PORT" nohup "$NODE_BIN" "$BRIDGE" >>"$LOG_FILE" 2>&1 &
+  sleep 0.5
+fi
+
+URL="file://$MIC_BAR?bridge=http://127.0.0.1:$PORT"
+
+if command -v open >/dev/null 2>&1; then
+  if [[ -d "/Applications/Google Chrome.app" ]]; then
+    open -na "Google Chrome" --args --app="$URL" --user-data-dir="${TMPDIR:-/tmp}/codex-voice-chrome-profile" --no-first-run --no-default-browser-check
+  else
+    open "$URL"
+  fi
+else
+  echo "$URL"
+fi

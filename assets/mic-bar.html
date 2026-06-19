@@ -1,0 +1,761 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Codex Voice</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f7f4;
+      --panel: #ffffff;
+      --ink: #17201d;
+      --muted: #64706b;
+      --line: #d8dfda;
+      --accent: #0f766e;
+      --accent-dark: #0b5f59;
+      --accent-soft: #e8f4f1;
+      --danger: #dc2626;
+      --danger-soft: #fff0f0;
+      --purple: #6d5bd0;
+      --purple-soft: #eeeeff;
+      --shadow: 0 18px 48px rgba(23, 32, 29, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    .app {
+      width: min(560px, calc(100vw - 28px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fbfbfa;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      color: var(--accent);
+      background: #fff;
+    }
+
+    .logo svg,
+    .mic svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .status {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 260px;
+    }
+
+    .toggles {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      flex: 0 0 auto;
+    }
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+    }
+
+    main {
+      padding: 14px;
+    }
+
+    .composer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: end;
+      border: 1px solid #cfd8d2;
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 82px;
+      max-height: 240px;
+      resize: vertical;
+      border: 0;
+      outline: 0;
+      padding: 0;
+      color: var(--ink);
+      background: transparent;
+      font: inherit;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .mic {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(15, 118, 110, 0.18);
+    }
+
+    .mic:hover {
+      background: var(--accent-dark);
+    }
+
+    .mic.recording {
+      border-color: var(--danger);
+      background: var(--danger);
+      box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.12), 0 8px 18px rgba(220, 38, 38, 0.16);
+    }
+
+    .mic:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    button {
+      min-height: 34px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      padding: 0 10px;
+      cursor: pointer;
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--accent-dark);
+    }
+
+    button.magic {
+      background: var(--purple);
+      border-color: var(--purple);
+      color: #fff;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .message {
+      min-height: 22px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .message.good {
+      color: var(--accent);
+    }
+
+    .message.warn {
+      color: #9a3412;
+    }
+
+    .message.bad {
+      color: var(--danger);
+    }
+
+    .refine-box {
+      display: none;
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px solid #cbd7ff;
+      border-radius: 8px;
+      background: var(--purple-soft);
+      color: #293050;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .refine-box.show {
+      display: block;
+    }
+
+    .hint {
+      margin-top: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .permission-card {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #f4c7a1;
+      border-radius: 8px;
+      background: #fff8f1;
+      color: #613012;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .permission-card.show {
+      display: block;
+    }
+
+    .permission-card strong {
+      color: #431407;
+    }
+
+    .permission-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 560px) {
+      body {
+        padding: 10px;
+      }
+
+      header {
+        display: block;
+      }
+
+      .toggles {
+        margin-top: 10px;
+      }
+
+      .status {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <path d="M12 19v3"></path>
+            <path d="M8 22h8"></path>
+          </svg>
+        </div>
+        <div>
+          <h1>Codex Voice</h1>
+          <div class="status" id="status" data-i18n="statusChecking">Checking Codex Voice Helper and speech support...</div>
+        </div>
+      </div>
+      <div class="toggles">
+        <label title="Paste into Codex and press Return after insertion.">
+          <input type="checkbox" id="autoSend">
+          <span data-i18n="autoSend">Auto-send</span>
+        </label>
+      </div>
+    </header>
+
+    <main>
+      <div class="composer">
+        <textarea id="transcript"></textarea>
+        <button class="mic" id="micButton" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <path d="M12 19v3"></path>
+            <path d="M8 22h8"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="controls">
+        <button class="primary" id="insertButton" type="button" data-i18n="insert">Insert into Codex</button>
+        <button id="copyButton" type="button" data-i18n="copy">Copy</button>
+        <button class="magic" id="refineButton" type="button" data-i18n="refine">Refine in Codex</button>
+        <button id="clearButton" type="button" data-i18n="clear">Clear</button>
+      </div>
+
+      <div class="message" id="message" data-i18n="tip">Tip: keep Auto-send off until insertion feels reliable.</div>
+
+      <div class="refine-box" id="refineBox">
+        <span data-i18n="refineHelp">Click Refine in Codex to send a prompt asking Codex to rewrite the transcript into a cleaner instruction. This uses the current Codex thread and avoids a separate API key.</span>
+      </div>
+
+      <div class="permission-card" id="permissionCard">
+        <strong id="permissionTitle">macOS Accessibility permission is required.</strong>
+        <div id="permissionText">Open System Settings > Privacy & Security > Accessibility, enable the app that launched Codex Voice Helper, then restart Codex Voice.</div>
+        <div class="permission-actions">
+          <button class="primary" id="openPermissionButton" type="button" data-i18n="openAccessibility">Open Accessibility Settings</button>
+          <button id="hidePermissionButton" type="button" data-i18n="useClipboard">Use clipboard mode</button>
+        </div>
+      </div>
+
+      <div class="hint" data-i18n="hint">
+        Automatic insertion needs macOS Accessibility permission for the app that launched Codex Voice Helper. If insertion fails, Codex Voice copies the transcript to your clipboard.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const bridgeBase = params.get("bridge") || "http://127.0.0.1:47732";
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const rawLanguage = (navigator.language || navigator.userLanguage || "en-US").toLowerCase();
+    const locale = rawLanguage.startsWith("zh") ? "zh" : "en";
+    const speechLanguage = locale === "zh" ? "zh-CN" : "en-US";
+    const i18n = {
+      en: {
+        htmlLang: "en",
+        statusChecking: "Checking Codex Voice Helper and speech support...",
+        statusReady: "Ready",
+        statusBridgeUnavailable: "Codex Voice Helper unavailable",
+        statusListening: "Listening...",
+        statusSpeechUnsupported: "Speech unsupported",
+        autoSend: "Auto-send",
+        placeholder: "Click the microphone and speak. Review the transcript before sending to Codex.",
+        micStart: "Start recording",
+        micStop: "Stop recording",
+        insert: "Insert into Codex",
+        copy: "Copy",
+        refine: "Refine in Codex",
+        clear: "Clear",
+        tip: "Tip: keep Auto-send off until insertion feels reliable.",
+        refineHelp: "Click Refine in Codex to send a prompt asking Codex to rewrite the transcript into a cleaner instruction. This uses the current Codex thread and avoids a separate API key.",
+        permissionTitle: "macOS Accessibility permission is required.",
+        permissionText: (appName) => `macOS often does not show an Accessibility prompt automatically. Open System Settings > Privacy & Security > Accessibility, enable \"${appName}\". If you see \"Codex Voice Helper Runtime\" or \"node\", enable that entry for now. Then restart Codex Voice. The transcript has been copied to your clipboard for now.`,
+        openAccessibility: "Open Accessibility Settings",
+        useClipboard: "Use clipboard mode",
+        hint: "Automatic insertion needs macOS Accessibility permission for the app that launched Codex Voice Helper. If insertion fails, Codex Voice copies the transcript to your clipboard.",
+        bridgeNotRunning: "Codex Voice Helper is not running. Open Codex Voice through scripts/open-codex-voice.",
+        speechUnavailable: "Speech recognition is not available in this browser. Try Chrome or Edge.",
+        listening: "Listening. Speak naturally, then click the mic again to stop.",
+        interim: (text) => `Interim: ${text}`,
+        review: "Review the transcript, then insert it into Codex.",
+        stopped: "Stopped.",
+        nothingInsert: "Nothing to insert yet.",
+        insertedSent: "Inserted into Codex and sent.",
+        inserted: "Inserted into Codex. Review and send when ready.",
+        copiedFallback: "Copied to clipboard as fallback.",
+        copied: "Copied to clipboard.",
+        copiedBridge: "Copied to clipboard through Codex Voice Helper.",
+        nothingCopy: "Nothing to copy yet.",
+        nothingRefine: "Nothing to refine yet.",
+        refineSent: "Sent refinement request to Codex.",
+        refineCopied: "Refinement prompt copied to clipboard as fallback.",
+        cleared: "Cleared.",
+        autoSendOn: "Auto-send enabled. Codex Voice will press Return after insertion.",
+        autoSendOff: "Auto-send disabled. Text will only be inserted.",
+        settingsOpened: "Opened Accessibility settings. Enable the app that launched Codex Voice Helper, then restart Codex Voice.",
+        settingsOpenFailed: (message) => `Could not open settings: ${message}`,
+        clipboardMode: "Continuing with clipboard mode.",
+        refinePrompt: (text) => [
+          "Please refine the following spoken note into a clear Codex prompt.",
+          "Keep the user's intent, remove filler words, and make the instruction actionable.",
+          "",
+          "Spoken note:",
+          text,
+        ].join("\\n"),
+      },
+      zh: {
+        htmlLang: "zh-CN",
+        statusChecking: "正在检查 Codex Voice 辅助组件和语音支持...",
+        statusReady: "就绪",
+        statusBridgeUnavailable: "Codex Voice 辅助组件不可用",
+        statusListening: "正在听...",
+        statusSpeechUnsupported: "不支持语音识别",
+        autoSend: "自动发送",
+        placeholder: "点击话筒开始说话。发送给 Codex 前可以先检查转写内容。",
+        micStart: "开始录音",
+        micStop: "停止录音",
+        insert: "填入 Codex",
+        copy: "复制",
+        refine: "在 Codex 中润色",
+        clear: "清空",
+        tip: "建议先关闭自动发送，等填入体验稳定后再开启。",
+        refineHelp: "点击“在 Codex 中润色”，会把转写内容发到当前 Codex 线程，请 Codex 改写成更清晰的指令。不需要额外 API Key。",
+        permissionTitle: "需要开启 macOS 辅助功能权限。",
+        permissionText: (appName) => `macOS 通常不会自动弹出辅助功能授权。请在 系统设置 > 隐私与安全性 > 辅助功能 中勾选「${appName}」。如果看到「Codex Voice Helper Runtime」或「node」，也可以先勾选它完成测试。然后重启 Codex Voice。当前内容已复制到剪贴板，你可以先手动粘贴。`,
+        openAccessibility: "打开辅助功能设置",
+        useClipboard: "先用剪贴板模式",
+        hint: "自动填入需要给启动 Codex Voice 辅助组件的应用授予 macOS 辅助功能权限。如果填入失败，Codex Voice 会把转写内容复制到剪贴板。",
+        bridgeNotRunning: "Codex Voice 辅助组件没有运行。请通过 scripts/open-codex-voice 打开 Codex Voice。",
+        speechUnavailable: "当前浏览器不支持语音识别。请尝试 Chrome 或 Edge。",
+        listening: "正在听。自然说话，然后再次点击话筒停止。",
+        interim: (text) => `临时识别：${text}`,
+        review: "请检查转写内容，然后填入 Codex。",
+        stopped: "已停止。",
+        nothingInsert: "还没有可填入的内容。",
+        insertedSent: "已填入 Codex 并发送。",
+        inserted: "已填入 Codex。你可以检查后发送。",
+        copiedFallback: "已复制到剪贴板作为回退。",
+        copied: "已复制到剪贴板。",
+        copiedBridge: "已通过 Codex Voice 辅助组件复制到剪贴板。",
+        nothingCopy: "还没有可复制的内容。",
+        nothingRefine: "还没有可润色的内容。",
+        refineSent: "已把润色请求发送到 Codex。",
+        refineCopied: "润色 prompt 已复制到剪贴板作为回退。",
+        cleared: "已清空。",
+        autoSendOn: "已开启自动发送。填入后 Codex Voice 会按 Return。",
+        autoSendOff: "已关闭自动发送。只会填入文本。",
+        settingsOpened: "已打开辅助功能设置。勾选启动 Codex Voice 辅助组件的应用后，请重启 Codex Voice。",
+        settingsOpenFailed: (message) => `无法自动打开设置：${message}`,
+        clipboardMode: "继续使用剪贴板模式。",
+        refinePrompt: (text) => [
+          "请把下面这段口语化记录润色成清晰的 Codex prompt。",
+          "保留用户意图，去掉口头填充词，并让指令更可执行。",
+          "",
+          "口语记录：",
+          text,
+        ].join("\\n"),
+      },
+    };
+    const t = i18n[locale];
+    document.documentElement.lang = t.htmlLang;
+
+    const statusEl = document.querySelector("#status");
+    const messageEl = document.querySelector("#message");
+    const transcriptEl = document.querySelector("#transcript");
+    const micButton = document.querySelector("#micButton");
+    const insertButton = document.querySelector("#insertButton");
+    const copyButton = document.querySelector("#copyButton");
+    const refineButton = document.querySelector("#refineButton");
+    const clearButton = document.querySelector("#clearButton");
+    const autoSendEl = document.querySelector("#autoSend");
+    const refineBox = document.querySelector("#refineBox");
+    const permissionCard = document.querySelector("#permissionCard");
+    const permissionText = document.querySelector("#permissionText");
+    const openPermissionButton = document.querySelector("#openPermissionButton");
+    const hidePermissionButton = document.querySelector("#hidePermissionButton");
+
+    let recognition = null;
+    let recording = false;
+
+    autoSendEl.checked = localStorage.getItem("codexVoice.autoSend") === "true";
+
+    function applyI18n() {
+      document.querySelectorAll("[data-i18n]").forEach((node) => {
+        const key = node.getAttribute("data-i18n");
+        if (typeof t[key] === "string") {
+          node.textContent = t[key];
+        }
+      });
+      transcriptEl.placeholder = t.placeholder;
+      micButton.setAttribute("aria-label", t.micStart);
+      permissionTitle.textContent = t.permissionTitle;
+    }
+
+    function setMessage(text, tone = "") {
+      messageEl.textContent = text;
+      messageEl.className = `message ${tone}`.trim();
+    }
+
+    function showPermissionHelp(permission) {
+      const appName = permission && permission.hostApp ? permission.hostApp : (locale === "zh" ? "启动 Codex Voice 辅助组件的应用" : "the app that launched Codex Voice Helper");
+      permissionText.textContent = t.permissionText(appName);
+      permissionCard.classList.add("show");
+    }
+
+    function setRecording(next) {
+      recording = next;
+      micButton.classList.toggle("recording", next);
+      micButton.setAttribute("aria-label", next ? t.micStop : t.micStart);
+      statusEl.textContent = next ? t.statusListening : t.statusReady;
+    }
+
+    function getText() {
+      return transcriptEl.value.trim();
+    }
+
+    async function postJson(path, payload) {
+      const response = await fetch(`${bridgeBase}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok === false) {
+        throw new Error(data.error || data.detail || `HTTP ${response.status}`);
+      }
+      return data;
+    }
+
+    async function checkBridge() {
+      try {
+        const response = await fetch(`${bridgeBase}/health`);
+        const data = await response.json();
+        statusEl.textContent = data.ok ? t.statusReady : t.statusBridgeUnavailable;
+      } catch (_) {
+        statusEl.textContent = t.statusBridgeUnavailable;
+        setMessage(t.bridgeNotRunning, "bad");
+      }
+    }
+
+    function appendTranscript(text) {
+      const cleaned = text.trim();
+      if (!cleaned) return;
+      const prefix = transcriptEl.value.trim() ? "\n" : "";
+      transcriptEl.value = `${transcriptEl.value.trim()}${prefix}${cleaned}`;
+      transcriptEl.focus();
+      transcriptEl.selectionStart = transcriptEl.selectionEnd = transcriptEl.value.length;
+    }
+
+    function startRecognition() {
+      if (!SpeechRecognition) {
+        setMessage(t.speechUnavailable, "bad");
+        return;
+      }
+
+      recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = speechLanguage;
+
+      recognition.onstart = () => {
+        setRecording(true);
+        setMessage(t.listening);
+      };
+
+      recognition.onresult = (event) => {
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; i += 1) {
+          const piece = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            appendTranscript(piece);
+          } else {
+            interim += piece;
+          }
+        }
+        if (interim) {
+          setMessage(t.interim(interim));
+        }
+      };
+
+      recognition.onerror = (event) => {
+        setRecording(false);
+        setMessage(`Speech recognition error: ${event.error}`, "bad");
+      };
+
+      recognition.onend = () => {
+        setRecording(false);
+        setMessage(getText() ? t.review : t.stopped);
+      };
+
+      try {
+        recognition.start();
+      } catch (error) {
+        setRecording(false);
+        setMessage(error.message, "bad");
+      }
+    }
+
+    function stopRecognition() {
+      if (recognition) {
+        recognition.stop();
+      }
+      setRecording(false);
+    }
+
+    micButton.addEventListener("click", () => {
+      if (recording) {
+        stopRecognition();
+      } else {
+        startRecognition();
+      }
+    });
+
+    insertButton.addEventListener("click", async () => {
+      const text = getText();
+      if (!text) {
+        setMessage(t.nothingInsert, "warn");
+        return;
+      }
+
+      insertButton.disabled = true;
+      try {
+        const data = await postJson("/insert", {
+          text,
+          autoSend: autoSendEl.checked,
+        });
+        if (data.mode === "accessibility") {
+          permissionCard.classList.remove("show");
+          setMessage(data.autoSend ? t.insertedSent : t.inserted, "good");
+        } else {
+          if (data.needsAccessibility) {
+            showPermissionHelp(data.permission);
+          }
+          setMessage(data.message || t.copiedFallback, "warn");
+        }
+      } catch (error) {
+        setMessage(error.message, "bad");
+      } finally {
+        insertButton.disabled = false;
+      }
+    });
+
+    openPermissionButton.addEventListener("click", async () => {
+      try {
+        await postJson("/open-accessibility-settings", {});
+        setMessage(t.settingsOpened, "warn");
+      } catch (error) {
+        setMessage(t.settingsOpenFailed(error.message), "bad");
+      }
+    });
+
+    hidePermissionButton.addEventListener("click", () => {
+      permissionCard.classList.remove("show");
+      setMessage(t.clipboardMode, "warn");
+    });
+
+    copyButton.addEventListener("click", async () => {
+      const text = getText();
+      if (!text) {
+        setMessage(t.nothingCopy, "warn");
+        return;
+      }
+
+      try {
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          await postJson("/clipboard", { text });
+        }
+        setMessage(t.copied, "good");
+      } catch (error) {
+        try {
+          await postJson("/clipboard", { text });
+          setMessage(t.copiedBridge, "good");
+        } catch (bridgeError) {
+          setMessage(bridgeError.message || error.message, "bad");
+        }
+      }
+    });
+
+    refineButton.addEventListener("click", async () => {
+      const text = getText();
+      if (!text) {
+        setMessage(t.nothingRefine, "warn");
+        return;
+      }
+
+      const prompt = t.refinePrompt(text);
+
+      try {
+        const data = await postJson("/insert", {
+          text: prompt,
+          autoSend: true,
+        });
+        refineBox.classList.add("show");
+        setMessage(data.mode === "accessibility" ? t.refineSent : t.refineCopied, data.mode === "accessibility" ? "good" : "warn");
+      } catch (error) {
+        setMessage(error.message, "bad");
+      }
+    });
+
+    clearButton.addEventListener("click", () => {
+      transcriptEl.value = "";
+      refineBox.classList.remove("show");
+      setMessage(t.cleared);
+    });
+
+    autoSendEl.addEventListener("change", () => {
+      localStorage.setItem("codexVoice.autoSend", String(autoSendEl.checked));
+      setMessage(autoSendEl.checked ? t.autoSendOn : t.autoSendOff, autoSendEl.checked ? "warn" : "");
+    });
+
+    applyI18n();
+
+    if (!SpeechRecognition) {
+      micButton.disabled = true;
+      statusEl.textContent = t.statusSpeechUnsupported;
+      setMessage(t.speechUnavailable, "bad");
+    }
+
+    checkBridge();
+  </script>
+</body>
+</html>

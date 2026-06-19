@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+*.log
+.env
+.tmp/
+.build/
+DerivedData/
+*.xcuserstate
+apps/macos/CodexVoice/dist/
+apps/macos/CodexVoice/.build/

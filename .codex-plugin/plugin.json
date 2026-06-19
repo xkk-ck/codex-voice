@@ -1,0 +1,27 @@
+{
+  "name": "codex-voice",
+  "version": "0.2.0+codex.20260619071900",
+  "description": "A lightweight voice input companion for Codex Desktop.",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Voice",
+    "shortDescription": "Speak prompts into Codex with a compact microphone bar.",
+    "longDescription": "Codex Voice adds a lightweight microphone bar for Codex Desktop. It uses browser speech recognition, inserts transcripts into the Codex composer on macOS with clipboard fallback, and includes voice-friendly prompt behavior.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Local",
+      "Voice"
+    ],
+    "defaultPrompt": [
+      "Open Codex Voice.",
+      "Use voice-friendly replies.",
+      "Refine this spoken prompt."
+    ],
+    "brandColor": "#0F766E"
+  }
+}
